@@ -2,8 +2,9 @@ define([
   'angular',
   'lodash',
   'kbn',
+  'config'
 ],
-function (angular, _, kbn) {
+function (angular, _, kbn, config) {
   'use strict';
 
   var module = angular.module('grafana.services');
@@ -80,9 +81,10 @@ function (angular, _, kbn) {
     };
 
     this._updateNonQueryVariable = function(variable) {
+      var valueMappingFn = config.templating.valueMappers[variable.valueMapper];
       // extract options in comma seperated string
       variable.options = _.map(variable.query.split(/[\s,]+/), function(text) {
-        return { text: text, value: text };
+        return { text: valueMappingFn ? valueMappingFn(text) : text, value: text };
       });
 
       if (variable.type === 'interval') {
@@ -142,7 +144,8 @@ function (angular, _, kbn) {
       }
 
       return _.map(_.keys(options), function(key) {
-        return { text: key, value: key };
+        var valueMappingFn = config.templating.valueMappers[variable.valueMapper];
+        return { text: valueMappingFn ? valueMappingFn(key) : key, value: key };
       });
     };
 

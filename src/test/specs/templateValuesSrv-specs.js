@@ -2,8 +2,9 @@ define([
   'mocks/dashboard-mock',
   './helpers',
   'moment',
+  'config',
   'services/templateValuesSrv'
-], function(dashboardMock, helpers, moment) {
+], function(dashboardMock, helpers, moment, config) {
   'use strict';
 
   describe('templateValuesSrv', function() {
@@ -245,6 +246,45 @@ define([
 
       it('should add empty glob', function() {
         expect(scenario.variable.options[0].value).to.be('(backend1|backend2|backend3)');
+      });
+    });
+
+    describe('value mapping', function() {
+      beforeEach(function() {
+        config.templating = {
+          valueMappers: {
+            myMapper: function(v) { return 'text_' + v; }
+          }
+        };
+      });
+
+      afterEach(function() {
+        config.templating = undefined; // Avoid leaking config state between tests
+      });
+
+      describeUpdateVariable('with query', function(scenario) {
+        scenario.setup(function() {
+          scenario.variable = { type: 'query', query: 'apps.*', name: 'test', valueMapper: 'myMapper' };
+          scenario.queryResult = [{text: 'backend1'}, {text: 'backend2'}, { text: 'backend3'}];
+        });
+
+        it('should map text properties', function() {
+          expect(scenario.variable.options[0].text).to.be('text_backend1');
+          expect(scenario.variable.options[1].text).to.be('text_backend2');
+          expect(scenario.variable.options[2].text).to.be('text_backend3');
+        });
+      });
+
+      describeUpdateVariable('with custom', function(scenario) {
+        scenario.setup(function() {
+          scenario.variable = { type: 'custom', query: 'hej, hop, asd', name: 'test', valueMapper: 'myMapper' };
+        });
+
+        it('should map text properties', function() {
+          expect(scenario.variable.options[0].text).to.be('text_hej');
+          expect(scenario.variable.options[1].text).to.be('text_hop');
+          expect(scenario.variable.options[2].text).to.be('text_asd');
+        });
       });
     });
 

@@ -25,7 +25,8 @@ function (_, crypto) {
       playlist_timespan             : "1m",
       unsaved_changes_warning       : true,
       search                        : { max_results: 100 },
-      admin                         : {}
+      admin                         : {},
+      templating                    : {}
     };
 
     // This initializes a new hash on purpose, to avoid adding parameters to
@@ -85,6 +86,10 @@ function (_, crypto) {
 
     if (!settings.plugins.dependencies) {
       settings.plugins.dependencies = [];
+    }
+
+    if (!settings.templating.valueMappers) {
+      settings.templating.valueMappers = {};
     }
 
     return settings;
